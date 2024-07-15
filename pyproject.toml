@@ -2,10 +2,7 @@
 name = "axon"
 version = "0.1.0"
 description = "Add your description here"
-authors = [
-    { name = "Zak Johnson", email = "me@zakj.net" }
-]
-dependencies = []
+authors = [{ name = "Zak Johnson", email = "me@zakj.net" }]
 readme = "README.md"
 requires-python = ">= 3.8"
 
@@ -15,7 +12,7 @@ build-backend = "hatchling.build"
 
 [tool.rye]
 managed = true
-dev-dependencies = []
+dev-dependencies = ["ruff>=0.5.1"]
 
 [tool.hatch.metadata]
 allow-direct-references = true

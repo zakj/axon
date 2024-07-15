@@ -6,5 +6,8 @@ dist/
 wheels/
 *.egg-info
 
+# Ignore project lockfiles for now
+/requirements*.lock
+
 # venv
 .venv

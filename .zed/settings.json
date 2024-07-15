@@ -1,0 +1,30 @@
+{
+  "languages": {
+    "Python": {
+      "format_on_save": {
+        "external": {
+          "command": "rye",
+          "arguments": [
+            "run",
+            "ruff",
+            "format",
+            "--stdin-filename",
+            "{buffer_path}",
+            "-"
+          ]
+        }
+      }
+    }
+  },
+  "lsp": {
+    "pyright": {
+      "python.analysis": {
+        "diagnosticMode": "workspace",
+        "typeCheckingMode": "strict"
+      },
+      "settings": {
+        "python": { "pythonPath": ".venv/bin/python" }
+      }
+    }
+  }
+}
