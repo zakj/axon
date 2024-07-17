@@ -5,7 +5,7 @@ description = "Add your description here"
 authors = [{ name = "Zak Johnson", email = "me@zakj.net" }]
 dependencies = [
     "textual>=0.72.0",
-    "mistletoe>=1.4.0",
+    "mistune>=3.0.2",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
@@ -19,6 +19,7 @@ managed = true
 dev-dependencies = [
     "ruff>=0.5.1",
     "textual-dev>=1.5.1",
+    "pytest>=8.2.2",
 ]
 
 [tool.hatch.metadata]

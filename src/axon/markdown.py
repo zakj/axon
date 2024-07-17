@@ -1,82 +1,114 @@
-import re
-from typing import Iterable
+from collections.abc import Iterable
+from dataclasses import dataclass, field
+from itertools import chain
+import pprint
+from typing import Any, Required, TypedDict
 
-from mistletoe import Document
-from mistletoe.base_renderer import BaseRenderer
-from mistletoe.ast_renderer import AstRenderer
-from mistletoe import block_token, span_token
-from mistletoe.token import Token
-from mistletoe.markdown_renderer import MarkdownRenderer, Fragment
+from axon.util import partition
+import mistune
 
-from pprint import pprint as pp
-
-
-class Ref(span_token.SpanToken):
-    parse_inner = False
-    parse_group = 0
-    repr_attributes = ("name",)
-
-    def __init__(self, match: re.Match):
-        self.content = match.group(self.parse_group)
-        self.name = match.group(1)
+# TODO: add a mistune plugin to handle tags/wiki-style links
 
 
-class TagRef(Ref):
-    pattern = re.compile(r"#([-0-9A-Za-z]+)")
+class Token(TypedDict, total=False):
+    type: Required[str]
+    children: list["Token"]
+    attrs: dict[str, Any]
 
 
-class BracketRef(Ref):
-    pattern = re.compile(r"\[\[([-0-9A-Za-z ]+)\]\]")
+# TODO: there has got to be a better name
+@dataclass
+class Item:
+    content: str
+    children: list["Item"] = field(default_factory=list)
+    refs: list[str] = field(default_factory=list)
 
 
-class BlockRenderer(MarkdownRenderer):
+@dataclass
+class TransformerContext:
+    list_ordered: list[bool] = field(default_factory=list)
+    list_num: list[int] = field(default_factory=list)
+
+
+class AstTransformer:
+    templates = {
+        "blank_line": "\n\n",
+        "block_text": "{children}",
+        "emphasis": "*{children}*",
+        "paragraph": "{children}",
+        "softbreak": "\n",
+        "strong": "**{children}**",
+        "text": "{raw}",
+        "thematic_break": "***",
+    }
+
     def __init__(self):
-        self._refs = []
-        super().__init__(TagRef, BracketRef)
+        self.ctx = TransformerContext()
 
-    def _handle_block(self):
-        pass
-        self._refs = []
+    def __call__(self, tokens: Iterable[Token]) -> list[Item]:
+        return list(chain(*(self.visit(t) for t in tokens)))
 
-    @staticmethod
-    def _parent_block(token: Token) -> Token:
-        cur = token
-        while not isinstance(cur, block_token.BlockToken):
-            if not cur.parent:
-                raise ValueError
-            cur = cur.parent
-        return cur
+    def visit(self, token: Token) -> list[Item]:
+        method = "visit_" + token["type"]
+        visitor = getattr(self, method, self.generic_visit)
+        return visitor(token)
 
-    def render_tag_ref(self, token: Ref) -> Iterable[Fragment]:
-        self._refs.append(token.name)
-        print("got ref", token.parent)
-        yield Fragment(token.content)
+    def generic_visit(self, token: Token) -> list[Item]:
+        template = self.templates.get(token["type"])
+        if template:
+            kwargs = {k: v for k, v in token.items() if k != "children"}
+            kwargs["children"] = self.render(*token.get("children", []))
+            return [Item(template.format(**kwargs))]
+        # TODO: better error handling once I implement all types
+        return [Item(f"UNKNOWN: {pprint.pformat(token)}")]
 
-    render_bracket_ref = render_tag_ref
+    def render(self, *tokens: Token) -> str:
+        return "".join(c.content for c in self(tokens))
 
-    # def render_paragraph(
-    #     self, token: block_token.Paragraph, max_line_length: int
-    # ) -> Iterable[str]:
-    #     return super().render_paragraph(token, max_line_length)
+    def visit_heading(self, token: Token) -> list[Item]:
+        prefix = "#" * token.get("attrs", {}).get("level", 1)
+        return [Item(f"{prefix} {self.render(*token.get('children', []))}")]
 
+    def visit_list(self, token: Token) -> list[Item]:
+        ordered = token.get("attrs", {}).get("ordered", False)
+        self.ctx.list_ordered.append(ordered)
+        self.ctx.list_num.append(0)
+        items = self(token.get("children", []))
+        self.ctx.list_ordered.pop()
+        self.ctx.list_num.pop()
+        return items
 
-def test(filename: str):
-    with open(filename) as f:
-        if True:
-            with BlockRenderer() as renderer:
-                out = renderer.render(Document(f))
+    def visit_list_item(self, token: Token) -> list[Item]:
+        content, lists = partition(
+            lambda t: t["type"] == "list", token.get("children", [])
+        )
+        marker = "-"
+        self.ctx.list_num[-1] += 1
+        if self.ctx.list_ordered[-1]:
+            marker = f"{self.ctx.list_num[-1]}."
+        return [Item(f"{marker} {self.render(*content)}", children=self(lists))]
+
+    def visit_link(self, token: Token) -> list[Item]:
+        assert "attrs" in token
+        assert "children" in token
+        title = token["attrs"].get("title")
+        label = token.get("label")
+        url = token["attrs"].get("url")
+        text = self.render(*token["children"])
+        if label:
+            # TODO: mistune's ast does not include reference mapping; it lives in
+            # the state that's passed to renderers.
+            return [Item(f"[{text}][]")]
         else:
-            with AstRenderer(TagRef, BracketRef) as renderer:
-                out = renderer.render(Document(f))
+            if title:
+                url = f'{url} "{title}"'
+            return [Item(f"[{text}]({url})")]
 
-    print(out)
-
-
-if __name__ == "__main__":
-    test("README.md")
-
-"""
-What is the actual output I want?
-Something like the AST output, but with only block tokens, and each block token should
-have a content attribute that is the MarkdownRendered version of all of its Span children
-"""
+    def visit_block_code(self, token: Token) -> list[Item]:
+        assert "raw" in token
+        assert "style" in token
+        if token["style"] == "indent":
+            return [Item(f'    {token['raw']}')]
+        else:
+            marker = token.get("marker", "```")
+            return [Item(f"{marker}\n{token['raw']}{marker}")]
