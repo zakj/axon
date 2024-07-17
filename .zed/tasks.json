@@ -1,0 +1,10 @@
+[
+  {
+    "label": "pytest",
+    "command": "rye run pytest"
+  },
+  {
+    "label": "pytest verbose",
+    "command": "rye run pytest -vv"
+  }
+]
