@@ -20,6 +20,7 @@ dev-dependencies = [
     "ruff>=0.5.1",
     "textual-dev>=1.5.1",
     "pytest>=8.2.2",
+    "pytest-mock>=3.14.0",
 ]
 
 [tool.hatch.metadata]
