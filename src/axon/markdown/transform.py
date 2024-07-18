@@ -2,24 +2,9 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from itertools import chain
 import pprint
-from typing import Any, Required, TypedDict
 
 from axon.util import partition
-import mistune
-
-
-class Token(TypedDict, total=False):
-    type: Required[str]
-    children: list["Token"]
-    attrs: dict[str, Any]
-
-
-# TODO: there has got to be a better name
-@dataclass
-class Item:
-    content: str
-    children: list["Item"] = field(default_factory=list)
-    refs: list[str] = field(default_factory=list)
+from axon.markdown import Item, Token
 
 
 @dataclass
@@ -35,6 +20,13 @@ class TransformerContext:
 
 
 class AstTransformer:
+    """Transform mistune's AST into `Item`s.
+
+    Effectively a compressed version of the full AST, each top-level element
+    in a markdown document is an item, as is each list item. Other child
+    elements are folded into their enclosing item.
+    """
+
     templates = {
         "blank_line": "\n\n",
         "block_text": "{children}",
@@ -53,17 +45,21 @@ class AstTransformer:
         return list(chain(*(self.visit(t) for t in tokens)))
 
     def visit(self, token: Token) -> list[Item]:
+        # A defined method on this class takes precedence.
         method = "visit_" + token["type"]
-        visitor = getattr(self, method, self.generic_visit)
-        return visitor(token)
+        visitor = getattr(self, method, None)
+        if visitor:
+            return visitor(token)
 
-    def generic_visit(self, token: Token) -> list[Item]:
+        # Otherwise, fall back to `AstTransformer.templates`.
         template = self.templates.get(token["type"])
         if template:
             kwargs = {k: v for k, v in token.items() if k != "children"}
             kwargs["children"] = self.render(*token.get("children", []))
             return [Item(template.format(**kwargs))]
-        # TODO: better error handling once I implement all types
+
+        # Unknown type; fall back to showing the AST.
+        # TODO: better error handling once I implement all known types
         return [Item(f"UNKNOWN: {pprint.pformat(token)}")]
 
     def render(self, *tokens: Token) -> str:

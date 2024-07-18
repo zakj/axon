@@ -1,10 +1,12 @@
 import pathlib
 import re
 
-import pytest
-from axon.markdown import AstTransformer, Item, Token
-from axon.md_reference import parse_reference, reference, REFERENCE_PATTERN
 import mistune
+import pytest
+
+from axon.markdown import Item
+from axon.markdown.transform import AstTransformer, Token
+from axon.markdown.plugins import parse_reference, reference, REFERENCE_PATTERN
 
 
 @pytest.fixture
