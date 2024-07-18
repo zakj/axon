@@ -23,10 +23,16 @@ def create(con: sqlite3.Connection) -> None:
             block_id integer not null,
             page_id integer not null,
             unique(block_id, page_id)
-            foreign key (block_id) references blocks (id)
-            foreign key (page_id) references pages (id)
+            foreign key (block_id) references blocks(id) on delete cascade
+            foreign key (page_id) references pages(id) on delete cascade
         )
     """)
+    # TODO: if we on delete cascade here, what happens to refs TO a page once we delete it?
+    # is it better to use a non-integer FK for page?
+    # that also doesn't work. maybe page_id -> page_name, and not a foreign key;
+    # ok to track refs to things that don't exist, those are trackable
+    # in fact might even be nice, we could display refs to a page that doesn't exist when querying
+    # that page
 
 
 # we can avoid complexity by changing materialized path data from id.id.id to order.order.order
@@ -61,10 +67,3 @@ def show_refs(con: sqlite3.Connection, id: int) -> str:
             ret.append(block.content)
 
     return "\n".join(ret)
-
-
-if __name__ == "__main__":
-    con = connect("tutorial.db")
-    create(con)
-    print(page_content(con, 1))
-    print(show_refs(con, 1))

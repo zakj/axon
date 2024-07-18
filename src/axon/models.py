@@ -6,9 +6,9 @@ import sqlite3
 @dataclass
 class Block:
     id: int
-    root_id: int
+    root_id: int  # TODO: page_id
     path: str
-    ordering: int
+    ordering: int  # TODO: not needed if we use materialized path index
     content: str
 
     SCHEMA = """create table if not exists blocks (
@@ -17,7 +17,7 @@ class Block:
         path not null,
         ordering integer not null default 0,
         content not null default "",
-        foreign key (root_id) references pages (id)
+        foreign key (root_id) references pages(id) on delete cascade
     )"""
 
     @classmethod

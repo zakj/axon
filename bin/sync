@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+
+import argparse
+from pathlib import Path
+
+from axon.sync import sync
+
+
+def file(s: str) -> Path:
+    p = Path(s)
+    if not p.parent.exists() or (p.exists() and not p.is_file()):
+        raise ValueError
+    return p
+
+
+def dir(s: str) -> Path:
+    p = Path(s)
+    if not p.is_dir():
+        raise ValueError
+    return p
+
+
+parser = argparse.ArgumentParser(
+    description="Process a tree of markdown to build a sqlite cache."
+)
+parser.add_argument("notes_dir", type=dir, help="root of the tree of markdown files")
+parser.add_argument("cache_file", type=file, help="path to the sqlite database")
+
+args = parser.parse_args()
+sync(args.notes_dir, args.cache_file)
