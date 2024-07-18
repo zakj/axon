@@ -1,6 +1,11 @@
 ## second level heading
 
-Paragraph with *italic* and **bold**.
+Paragraph with *italic*, **bold**, `inline code`.
+
+![alt text](# "title text")
+
+> blockquote
+> on multiple lines
 
 ***
 

@@ -38,6 +38,7 @@ class AstTransformer:
     templates = {
         "blank_line": "\n\n",
         "block_text": "{children}",
+        "codespan": "`{raw}`",
         "emphasis": "*{children}*",
         "softbreak": "\n",
         "strong": "**{children}**",
@@ -135,3 +136,18 @@ class AstTransformer:
         else:
             marker = token.get("marker", "```")
             return [Item(f"{marker}\n{token['raw']}{marker}")]
+
+    def visit_block_quote(self, token: Token) -> list[Item]:
+        content = self.render(*token.get("children", []))
+        content = content.replace("\n", "\n> ")
+        return [Item(f"> {content}")]
+
+    def visit_image(self, token: Token) -> list[Item]:
+        assert "attrs" in token
+        assert "children" in token
+        text = self.render(*token["children"])
+        url = token["attrs"].get("url", "")
+        title = token["attrs"].get("title")
+        if title:
+            url = f'{url} "{title}"'
+        return [Item(f"![{text}]({url})")]

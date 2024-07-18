@@ -25,33 +25,37 @@ def ast(parse):
 
 def test_transform_simple(ast):
     assert AstTransformer()(ast("simple.md")) == [
-        Item(content="# Hello world"),
-        Item(content="\n\n"),
-        Item(content="This is some markdown."),
+        Item("# Hello world"),
+        Item("\n\n"),
+        Item("This is some markdown."),
     ]
 
 
 def test_transform_list(ast):
     assert AstTransformer()(ast("list.md")) == [
         Item(
-            content="- a",
-            children=[Item(content="- b", children=[Item(content="- c")])],
+            "- a",
+            children=[Item("- b", children=[Item("- c")])],
         ),
-        Item(content="- d"),
+        Item("- d"),
     ]
 
 
 def test_transform_complex(ast):
     assert AstTransformer()(ast("complex.md")) == [
-        Item(content="## second level heading"),
-        Item(content="\n\n"),
-        Item(content="Paragraph with *italic* and **bold**."),
-        Item(content="\n\n"),
-        Item(content="***"),
-        Item(content="\n\n"),
-        Item(content="- [link](#)"),
-        Item(content='- [link](# "with a title")'),
-        Item(content="- [ref-style][]"),
+        Item("## second level heading"),
+        Item("\n\n"),
+        Item("Paragraph with *italic*, **bold**, `inline code`."),
+        Item("\n\n"),
+        Item('![alt text](# "title text")'),
+        Item("\n\n"),
+        Item("> blockquote\n> on multiple lines"),
+        Item("\n\n"),
+        Item("***"),
+        Item("\n\n"),
+        Item("- [link](#)"),
+        Item('- [link](# "with a title")'),
+        Item("- [ref-style][]"),
     ]
 
 
