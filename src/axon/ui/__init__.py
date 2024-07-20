@@ -68,6 +68,7 @@ class AxonApp(App):
         page = cast(Page, message.value)  # TODO typing
         main = self.query_one("#main")
         main.remove_children()
+        main.scroll_y = 0
         md = Markdown(page.render(con))
         md.border_title = page.name
         main.mount(md)
@@ -78,6 +79,7 @@ class AxonApp(App):
     def action_journal(self) -> None:
         main = self.query_one("#main")
         main.remove_children()
+        main.scroll_y = 0
         for journal in islice(self.journals, 5):
             md = Markdown(journal.render(con))
             md.border_title = journal.name
