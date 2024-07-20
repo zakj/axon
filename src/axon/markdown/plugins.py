@@ -18,6 +18,7 @@ def parse_reference(_, m: re.Match, state: BlockState) -> int:
     return m.end()
 
 
+# TODO: handle comma in brackets. ignore backslash-escaped tags
 def reference(md: Markdown) -> None:
     """A mistune plugin to handle tags and wiki-style links.
 

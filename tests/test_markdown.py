@@ -4,9 +4,20 @@ import re
 import mistune
 import pytest
 
-from axon.markdown import Item
+from axon.markdown import Item, preprocess_logseq
 from axon.markdown.transform import AstTransformer, Token
 from axon.markdown.plugins import parse_reference, reference, REFERENCE_PATTERN
+
+
+@pytest.fixture
+def contents():
+    dir = pathlib.Path(__file__).parent
+
+    def _contents(filename):
+        with open(dir / filename) as f:
+            return f.read()
+
+    return _contents
 
 
 @pytest.fixture
@@ -15,12 +26,11 @@ def parse():
 
 
 @pytest.fixture
-def ast(parse):
+def ast(parse, contents):
     dir = pathlib.Path(__file__).parent
 
     def _ast(filename):
-        with open(dir / filename) as f:
-            return parse(f.read())
+        return parse(contents(filename))
 
     return _ast
 
@@ -117,4 +127,10 @@ def test_transform_list_reference(ast):
                 Item("- second level again #d", refs=["d"]),
             ],
         )
+    ]
+
+
+def test_preprocess_logseq(parse, contents):
+    assert AstTransformer()(parse(preprocess_logseq(contents("logseq.md")))) == [
+        Item("- # title", children=[Item("- content")])
     ]

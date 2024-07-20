@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from datetime import datetime, date
 from pathlib import Path
 from typing import cast
 import sqlite3
@@ -6,21 +7,34 @@ import sqlite3
 import mistune
 
 from axon.db import connect, create
-from axon.markdown import Item, Token
+from axon.markdown import Item, Token, preprocess_logseq
 from axon.markdown.plugins import reference
 from axon.markdown.transform import AstTransformer
 from axon.models import Page, Block
+
+DATE_FORMATS = [
+    "%Y_%m_%d",  # Logseq
+]
 
 
 def parse(filename: str) -> list[Item]:
     parse = mistune.create_markdown(renderer="ast", plugins=[reference])
     transform = AstTransformer()
     with open(filename, "r") as f:
-        return transform(cast(list[Token], parse(f.read())))
+        return transform(cast(list[Token], parse(preprocess_logseq(f.read()))))
 
 
 def path_str(path: list[int]) -> str:
     return ".".join(f"{i:04}" for i in path)
+
+
+def parse_date(s: str) -> date | None:
+    for fmt in DATE_FORMATS:
+        try:
+            return datetime.strptime(s, fmt).date()
+        except ValueError:
+            pass
+    return None
 
 
 def walk(
@@ -45,9 +59,13 @@ def sync(notes_dir: Path, cache_file: Path) -> None:
         # TODO if page exists, check that last modified is greater than last sync
         # if not, nothing to do
         # if so, remove the page and its descendant blocks (does sqlite handle cascade?)
+
+        page_date = parse_date(relpath.stem)
+        if page_date:
+            page_name = page_date.strftime("%Y-%m-%d • %A")
         cur.execute(
-            "insert into pages (name, filename) values (?, ?)",
-            (page_name, path.as_posix()),
+            "insert into pages (name, filename, date) values (?, ?, ?)",
+            (page_name, path.as_posix(), parse_date(relpath.stem)),
         )
         page_id = cur.lastrowid
         assert page_id

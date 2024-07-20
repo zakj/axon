@@ -84,7 +84,7 @@ class Page:
     def fetch_all(cls, con: sqlite3.Connection):
         cur = con.cursor()
         cur.row_factory = cls.row_factory
-        cur.execute("select * from pages")
+        cur.execute("select * from pages order by date desc")
         return cur.fetchall()
 
     def blocks(self, con: sqlite3.Connection) -> list[Block]:
