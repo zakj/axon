@@ -34,30 +34,10 @@ def walk(
         yield from walk(item.children, path)
 
 
-# TODO: walk could build a list of executemany-able values
-def walk_old(
-    cur: sqlite3.Cursor,
-    page_id: int,
-    items: list[Item],
-    parent_path: list[int],
-) -> None:
-    if parent_path is None:
-        parent_path = []
-    for i, item in enumerate(items, start=1):
-        path = parent_path + [i]
-        # TODO: factor inserts out into model helpers?
-        cur.execute(
-            "insert into blocks (root_id, path, content) values (?, ?, ?)",
-            (page_id, path_str(path), item.content),
-        )
-        walk_old(cur, page_id, item.children, path)
-
-
 def sync(notes_dir: Path, cache_file: Path) -> None:
     con = connect(cache_file.as_posix())
     create(con)  # TODO create only if not exists
-    # for md_file in notes_dir.rglob("*.md"):
-    for path in notes_dir.rglob("PKM.md"):  # XXX
+    for path in notes_dir.rglob("*.md"):
         relpath = path.relative_to(notes_dir)
         page_name = str(relpath.parent / relpath.stem)
         cur = con.cursor()
@@ -74,7 +54,7 @@ def sync(notes_dir: Path, cache_file: Path) -> None:
         items = parse(path.as_posix())
         # TODO: factor inserts out into model helpers?
         cur.executemany(
-            "insert into blocks (root_id, path, content) values (?, ?, ?)",
+            "insert into blocks (page_id, path, content) values (?, ?, ?)",
             [(page_id,) + row for row in walk(items, [])],
         )
         con.commit()

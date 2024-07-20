@@ -2,6 +2,8 @@ import sqlite3
 
 from axon.models import Block, Page
 
+DEFAULT_FILENAME = "axon-cache.db"
+
 
 def connect(filename: str) -> sqlite3.Connection:
     con = sqlite3.connect(filename)
@@ -36,17 +38,16 @@ def create(con: sqlite3.Connection) -> None:
 
 
 # we can avoid complexity by changing materialized path data from id.id.id to order.order.order
-def page_content(con: sqlite3.Connection, id: int) -> str:
+def page_content(con: sqlite3.Connection, id: int) -> tuple[str, str]:
     cur = con.cursor()
 
     cur.execute("SELECT * from pages")
     cur.row_factory = Page.row_factory
     page = cur.fetchone()
 
-    return "\n".join(
+    return page.name, "\n".join(
         [
-            page.name or page.date,
-            *(f"| {b.indent + b.content:75} {(b.path)}" for b in page.blocks(con)),
+            *(f"{b.indent + b.content}" for b in page.blocks(con)),
         ]
     )
 
@@ -63,7 +64,7 @@ def show_refs(con: sqlite3.Connection, id: int) -> str:
     for id, name in pages.items():
         ret.append(f"== {name} ==")
         # TODO: should also show children of this block
-        for block in (b for b in blocks if b.root_id == id):
+        for block in (b for b in blocks if b.page_id == id):
             ret.append(block.content)
 
     return "\n".join(ret)

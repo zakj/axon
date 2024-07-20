@@ -3,6 +3,7 @@
 import argparse
 from pathlib import Path
 
+from axon import db
 from axon.sync import sync
 
 
@@ -24,7 +25,14 @@ parser = argparse.ArgumentParser(
     description="Process a tree of markdown to build a sqlite cache."
 )
 parser.add_argument("notes_dir", type=dir, help="root of the tree of markdown files")
-parser.add_argument("cache_file", type=file, help="path to the sqlite database")
+parser.add_argument(
+    "cache_file",
+    type=file,
+    nargs="?",
+    help=f"path to the sqlite database (<notes_dir>/{db.DEFAULT_FILENAME})",
+)
 
 args = parser.parse_args()
+if args.cache_file is None:
+    args.cache_file = args.notes_dir / db.DEFAULT_FILENAME
 sync(args.notes_dir, args.cache_file)

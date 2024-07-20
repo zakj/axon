@@ -1,23 +1,22 @@
 from dataclasses import dataclass
 import datetime
 import sqlite3
+from typing import Optional
 
 
 @dataclass
 class Block:
     id: int
-    root_id: int  # TODO: page_id
+    page_id: int
     path: str
-    ordering: int  # TODO: not needed if we use materialized path index
     content: str
 
     SCHEMA = """create table if not exists blocks (
         id integer primary key,
-        root_id integer not null,
+        page_id integer not null,
         path not null,
-        ordering integer not null default 0,
         content not null default "",
-        foreign key (root_id) references pages(id) on delete cascade
+        foreign key (page_id) references pages(id) on delete cascade
     )"""
 
     @classmethod
@@ -26,7 +25,6 @@ class Block:
 
     @property
     def depth(self) -> int:
-        # return len(self.path) // PATH_STEP_LEN
         return self.path.count(".")
 
     @property
@@ -37,7 +35,7 @@ class Block:
 @dataclass
 class Page:
     id: int
-    date: datetime.date
+    date: datetime.date  # only for journal entries
     name: str
     filename: str
     last_sync: datetime.datetime
@@ -45,20 +43,55 @@ class Page:
     SCHEMA = """create table if not exists pages (
         id integer primary key,
         date date,
-        name unique,
-        filename,
-        last_sync_at timestamp default CURRENT_TIMESTAMP
+        name unique not null,
+        filename unique not null,
+        last_sync_at timestamp not null default CURRENT_TIMESTAMP
     )"""
+
+    def __str__(self) -> str:
+        return self.name
+
+    def render(self, con: sqlite3.Connection) -> str:
+        return "\n".join(
+            [
+                *(f"{b.indent + b.content}" for b in self.blocks(con)),
+            ]
+        )
 
     @classmethod
     def row_factory(cls, cursor: sqlite3.Cursor, row: sqlite3.Row) -> "Page":
         return cls(*row)
 
+    @classmethod
+    def fetch(
+        cls,
+        con: sqlite3.Connection,
+        *,
+        id: Optional[int] = None,
+        name: Optional[str] = None,
+    ):
+        if id is None != name is None:
+            raise TypeError("one of 'id' or 'name' is required")
+        cur = con.cursor()
+        cur.row_factory = cls.row_factory
+        if id is not None:
+            cur.execute("select * from pages where id = ?", (id,))
+        else:
+            cur.execute("select * from pages where name = ?", (name,))
+        return cur.fetchone()
+
+    @classmethod
+    def fetch_all(cls, con: sqlite3.Connection):
+        cur = con.cursor()
+        cur.row_factory = cls.row_factory
+        cur.execute("select * from pages")
+        return cur.fetchall()
+
     def blocks(self, con: sqlite3.Connection) -> list[Block]:
         cur = con.cursor()
         cur.row_factory = Block.row_factory
         cur.execute(
-            "SELECT * from blocks where root_id = ? order by path",
+            "select * from blocks where page_id = ? order by path",
             (self.id,),
         )
         return cur.fetchall()
@@ -68,7 +101,7 @@ class Page:
         cur.row_factory = Block.row_factory
         # TODO: how to order refs?
         cur.execute(
-            "SELECT blocks.* from blocks, refs where page_id = ? and id = block_id",
+            "select blocks.* from blocks, refs where page_id = ? and id = block_id",
             (self.id,),
         )
         blocks = cur.fetchall()
@@ -77,7 +110,7 @@ class Page:
         placeholders = ",".join("?" * len(blocks))
         cur.execute(
             f"select id, coalesce(date, name) from pages where id in ({placeholders})",
-            [b.root_id for b in blocks],
+            [b.page_id for b in blocks],
         )
         pages = dict(cur.fetchall())
         return pages, blocks
