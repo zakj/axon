@@ -1,5 +1,9 @@
 [
   {
+    "label": "ui",
+    "command": "rye run textual run --dev axon.ui"
+  },
+  {
     "label": "pytest",
     "command": "rye run pytest"
   },

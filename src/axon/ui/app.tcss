@@ -1,0 +1,80 @@
+/*
+Content {
+    border: round $primary-background;
+    border-title-color: $text;
+    border-title-style: bold;
+    background: $background;
+}
+
+Content VerticalScroll {
+    scrollbar-color: $primary;
+    scrollbar-size-vertical: 1;
+}
+
+Query {
+    dock: bottom;
+    height: auto;
+    layout: horizontal;
+}
+Query > * {
+    background: $background;
+}
+Query > Input {
+    border: none;
+    height: 1;
+    padding: 0;
+}
+*/
+
+/* ------ */
+
+Screen {
+    layers: main modal;
+    align: center top;
+}
+
+VerticalScroll {
+    scrollbar-size-vertical: 1;
+}
+
+VerticalScroll > Markdown {
+    margin: 0 0 1 0;
+    padding: 1 1 0 1;
+    border: round $primary-background;
+    border-title-color: $text;
+    border-title-style: bold;
+}
+
+Query {
+    background: $background;
+    border: round $accent;
+    layer: modal;
+    max-width: 80;
+    min-width: 40;
+    width: 40%;
+
+    height: auto;
+    max-height: 10;
+    offset-y: 5;
+}
+Query.open {
+}
+
+Input {
+    border: none;
+    height: 1;
+    padding: 0;
+    width: 40;
+}
+
+ListView {
+    background: $background;
+    width: 40;
+    height: auto;
+}
+ListView > ListItem {
+    background: $background;
+}
+ListView > ListItem.--highlight {
+    background: $accent;
+}
