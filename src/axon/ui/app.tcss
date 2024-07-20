@@ -1,80 +1,59 @@
-/*
-Content {
+/* https://textual.textualize.io/guide/design/#theme-reference */
+
+#container {
+    width: auto !important;
+    max-width: 183;
+}
+
+#main {
+    background: $background;
+    scrollbar-size-vertical: 1;
+    width: 2fr;
+    max-width: 100;
+}
+#main Markdown {
     border: round $primary-background;
     border-title-color: $text;
     border-title-style: bold;
-    background: $background;
+    margin: 0 0 1 0;
+    padding: 1 1 0 1;
 }
 
-Content VerticalScroll {
-    scrollbar-color: $primary;
-    scrollbar-size-vertical: 1;
+#sidebar {
+    width: 1fr;
+    max-width: 80;
+    background: $surface;
+    display: none;
+}
+#sidebar.open {
+    display: block;
+}
+#sidebar Rule {
+  margin: 0;
 }
 
-Query {
-    dock: bottom;
-    height: auto;
-    layout: horizontal;
-}
-Query > * {
-    background: $background;
-}
-Query > Input {
-    border: none;
-    height: 1;
-    padding: 0;
-}
-*/
-
-/* ------ */
-
-Screen {
-    layers: main modal;
+QueryScreen {
     align: center top;
 }
 
-VerticalScroll {
-    scrollbar-size-vertical: 1;
-}
-
-VerticalScroll > Markdown {
-    margin: 0 0 1 0;
-    padding: 1 1 0 1;
-    border: round $primary-background;
-    border-title-color: $text;
-    border-title-style: bold;
-}
-
 Query {
-    background: $background;
-    border: round $accent;
-    layer: modal;
-    max-width: 80;
-    min-width: 40;
-    width: 40%;
-
     height: auto;
-    max-height: 10;
-    offset-y: 5;
+    width: 40;
+    offset-y: 30vh;
 }
-Query.open {
-}
-
-Input {
+Query Input {
     border: none;
     height: 1;
-    padding: 0;
-    width: 40;
+    padding: 0 1;
 }
-
-ListView {
-    background: $background;
-    width: 40;
+Query ListView {
     height: auto;
+    max-height: 5;
 }
-ListView > ListItem {
-    background: $background;
+Query ListItem {
+    background: $surface;
+    padding: 0 1;
 }
-ListView > ListItem.--highlight {
+Query ListItem.--highlight {
     background: $accent;
 }

@@ -15,6 +15,8 @@ class Query[T](Widget):
     BINDINGS = [
         Binding("up", "cursor_up", "Cursor Up", show=False),
         Binding("down", "cursor_down", "Cursor Down", show=False),
+        Binding("ctrl+p", "cursor_up", "Cursor Up", show=False),
+        Binding("ctrl+n", "cursor_down", "Cursor Down", show=False),
     ]
 
     class Selected(Message):
@@ -51,7 +53,7 @@ class Query[T](Widget):
             list_view.remove_class("open")
         list_view.clear()
         list_view.extend(
-            [ListItem(Label(str(p))) for p in self.filtered_items],
+            [ListItem(Label(str(p))) for p in self.filtered_items[:50]],
         )
         list_view.index = 0  # TODO doesn't highlight sometimes
 
