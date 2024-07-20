@@ -1,10 +1,10 @@
+import pprint
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from itertools import chain
-import pprint
 
-from axon.util import partition
 from axon.markdown import Item, Token
+from axon.util import partition
 
 
 @dataclass
@@ -128,7 +128,7 @@ class AstTransformer:
         assert "raw" in token
         assert "style" in token
         if token["style"] == "indent":
-            return [Item(f'    {token['raw']}')]
+            return [Item(f"    {token['raw']}")]
         else:
             marker = token.get("marker", "```")
             return [Item(f"{marker}\n{token['raw']}{marker}")]

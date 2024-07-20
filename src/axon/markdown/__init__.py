@@ -1,6 +1,6 @@
+import re
 from dataclasses import dataclass, field
 from itertools import dropwhile
-import re
 from typing import Any, Required, TypedDict
 
 

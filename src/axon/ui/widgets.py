@@ -4,7 +4,7 @@ from textual.binding import Binding
 from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Input, Label, ListView, ListItem
+from textual.widgets import Input, Label, ListItem, ListView
 
 
 class Query[T](Widget):

@@ -1,7 +1,6 @@
-from dataclasses import dataclass
 import datetime
 import sqlite3
-from typing import Optional
+from dataclasses import dataclass
 
 
 @dataclass
@@ -67,8 +66,8 @@ class Page:
         cls,
         con: sqlite3.Connection,
         *,
-        id: Optional[int] = None,
-        name: Optional[str] = None,
+        id: int | None = None,
+        name: str | None = None,
     ):
         if id is None != name is None:
             raise TypeError("one of 'id' or 'name' is required")

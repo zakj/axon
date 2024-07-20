@@ -3,10 +3,9 @@ import re
 
 import mistune
 import pytest
-
 from axon.markdown import Item, preprocess_logseq
-from axon.markdown.transform import AstTransformer, Token
-from axon.markdown.plugins import parse_reference, reference, REFERENCE_PATTERN
+from axon.markdown.plugins import REFERENCE_PATTERN, parse_reference, reference
+from axon.markdown.transform import AstTransformer
 
 
 @pytest.fixture

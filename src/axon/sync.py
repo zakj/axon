@@ -1,8 +1,7 @@
 from collections.abc import Iterable
-from datetime import datetime, date
+from datetime import date, datetime
 from pathlib import Path
 from typing import cast
-import sqlite3
 
 import mistune
 
@@ -10,7 +9,6 @@ from axon.db import connect, create
 from axon.markdown import Item, Token, preprocess_logseq
 from axon.markdown.plugins import reference
 from axon.markdown.transform import AstTransformer
-from axon.models import Page, Block
 
 DATE_FORMATS = [
     "%Y_%m_%d",  # Logseq
@@ -20,7 +18,7 @@ DATE_FORMATS = [
 def parse(filename: str) -> list[Item]:
     parse = mistune.create_markdown(renderer="ast", plugins=[reference])
     transform = AstTransformer()
-    with open(filename, "r") as f:
+    with open(filename) as f:
         return transform(cast(list[Token], parse(preprocess_logseq(f.read()))))
 
 

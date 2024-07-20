@@ -1,11 +1,6 @@
 from itertools import islice
 from typing import Iterable, cast
 
-from axon import db
-from axon.models import Page
-from axon.ui.widgets import Query
-from axon.util import partition
-
 from textual import on
 from textual.app import App, ComposeResult
 from textual.containers import Center, Horizontal, VerticalScroll
@@ -14,6 +9,11 @@ from textual.reactive import reactive
 from textual.screen import ModalScreen
 from textual.widget import Widget
 from textual.widgets import Footer, Input, Label, Markdown, Placeholder, Rule
+
+from axon import db
+from axon.models import Page
+from axon.ui.widgets import Query
+from axon.util import partition
 
 
 class QueryScreen(ModalScreen):
