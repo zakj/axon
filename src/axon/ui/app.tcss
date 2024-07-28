@@ -57,3 +57,15 @@ Query ListItem {
 Query ListItem.--highlight {
     background: $accent;
 }
+
+
+MarkdownHeader {
+    color: $accent;
+    text-style: bold;
+}
+MarkdownList MarkdownHeader {
+    margin: 0;
+}
+MarkdownBullet {
+    color: $background-lighten-3;
+}
