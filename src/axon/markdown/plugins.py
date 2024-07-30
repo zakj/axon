@@ -3,8 +3,9 @@ import re
 from markdown_it import MarkdownIt
 from markdown_it.rules_inline import StateInline
 
-# TODO compile this
-REFERENCE_PATTERN = r"#(?P<tagged>[-0-9A-Za-z]+)|\[\[(?P<bracketed>[-_ 0-9A-Za-z]+)\]\]"
+REFERENCE_RE = re.compile(
+    r"#(?P<tagged>[-0-9A-Za-z]+)|\[\[(?P<bracketed>[-_ 0-9A-Za-z]+)\]\]"
+)
 
 
 def reference_plugin(md: MarkdownIt) -> None:
@@ -32,11 +33,10 @@ def is_escaped(src: str, pos: int) -> bool:
 def _reference_rule(state: StateInline, start_line: int) -> bool:
     if state.src[state.pos] not in {"[", "#"} or is_escaped(state.src, state.pos):
         return False
-    m = re.match(REFERENCE_PATTERN, state.src[state.pos :])
+    m = REFERENCE_RE.match(state.src[state.pos :])
     if not m:
         return False
     tagged, bracketed = m.group("tagged"), m.group("bracketed")
-    text = tagged or bracketed
     token = state.push("reference", "a", 0)
     token.content = tagged or bracketed
     token.markup = "#" if tagged else "[["
