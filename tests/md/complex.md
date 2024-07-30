@@ -14,3 +14,9 @@ Paragraph with *italic*, **bold**, `inline code`.
 - [ref-style][]
 
 [ref-style]: #
+
+```
+fence
+```
+
+    code block

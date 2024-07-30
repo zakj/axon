@@ -5,7 +5,7 @@
   },
   {
     "label": "pytest",
-    "command": "rye run pytest"
+    "command": "rye run pytest -q"
   },
   {
     "label": "pytest verbose",

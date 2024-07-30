@@ -3,23 +3,20 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import cast
 
-import mistune
-
 from axon.db import connect, create
-from axon.markdown import Item, Token, preprocess_logseq
-from axon.markdown.plugins import reference
-from axon.markdown.transform import AstTransformer
+from axon.markdown import create_md, Item, preprocess_logseq
+from axon.markdown.transform import Transformer
 
 DATE_FORMATS = [
     "%Y_%m_%d",  # Logseq
 ]
 
 
-def parse(filename: str) -> list[Item]:
-    parse = mistune.create_markdown(renderer="ast", plugins=[reference])
-    transform = AstTransformer()
+def parse(filename: str) -> Iterable[Item]:
+    md = create_md()
+    transform = Transformer()
     with open(filename) as f:
-        return transform(cast(list[Token], parse(preprocess_logseq(f.read()))))
+        return transform(md.parse(preprocess_logseq(f.read())))
 
 
 def path_str(path: list[int]) -> str:
@@ -36,7 +33,7 @@ def parse_date(s: str) -> date | None:
 
 
 def walk(
-    items: list[Item],
+    items: Iterable[Item],
     parent_path: list[int],
 ) -> Iterable[tuple[str, str]]:
     for i, item in enumerate(items, start=1):
