@@ -1,3 +1,4 @@
+from itertools import takewhile
 import re
 
 from markdown_it import MarkdownIt
@@ -19,15 +20,9 @@ def reference_plugin(md: MarkdownIt) -> None:
 
 
 def is_escaped(src: str, pos: int) -> bool:
-    """Determine whether there are odd number of backslashes before the given position."""
-    count = 0
-    while pos > 0:
-        pos -= 1
-        if src[pos] == "\\":
-            count += 1
-        else:
-            break
-    return bool(count and count % 2 == 1)
+    """Is there an odd number of backslashes before `pos`?"""
+    backslashes = takewhile(lambda i: src[i] == "\\", reversed(range(pos)))
+    return sum(1 for _ in backslashes) % 2 == 1
 
 
 def _reference_rule(state: StateInline, start_line: int) -> bool:
